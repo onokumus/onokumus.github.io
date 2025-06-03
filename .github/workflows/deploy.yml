@@ -1,0 +1,43 @@
+name: Build and Deploy SvelteKit Site
+
+on:
+  push:
+    branches:
+      - master # veya master, ana branch'inizin adı neyse
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh-pages branch'ine yazmak için gerekli
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Kullandığınız Node.js sürümüne göre ayarlayın
+          cache: 'npm' # veya 'yarn'
+
+      - name: Install dependencies
+        run: npm install # veya yarn install
+
+      - name: Build site
+        # paths.base ayarını burada da environment variable ile override edebilirsiniz
+        # Eğer svelte.config.js'de process.env.NODE_ENV kontrolü yaptıysanız:
+        run: npm run build
+        env:
+          NODE_ENV: production # svelte.config.js'deki paths.base için
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build # SvelteKit'in build çıktısının olduğu klasör
+          # Eğer <kullaniciadi>.github.io reposu değilse ve özel alan adı kullanmıyorsanız
+          # publish_branch: gh-pages # Varsayılan olarak gh-pages branch'ine deploy eder
+          # user_name: 'github-actions[bot]' # Commit yapan kullanıcı adı
+          # user_email: 'github-actions[bot]@users.noreply.github.com' # Commit yapan e-posta
+          # cname: www.seninsiten.com # Eğer özel alan adı kullanıyorsanız buraya yazın
